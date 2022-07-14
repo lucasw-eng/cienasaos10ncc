@@ -1,0 +1,21 @@
+*.egg
+*.egg-info
+*.EGG
+*.EGG-INFO
+*.mo
+*.pyc
+*.pyo
+*.swp
+bin
+build
+dist
+*~
+v/
+
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/

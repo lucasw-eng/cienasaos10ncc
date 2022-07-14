@@ -1,0 +1,20 @@
+<config>
+  <isis xmlns="http://ciena.com/ns/yang/ciena-isis"> 
+    <instance>
+      <tag>{{ INSTANCE_TAG }}</tag>
+      <net>{{ NET_ID }}</net> 
+      <level-type>{{ LEVEL_TYPE }}</level-type> 
+      <metric-style>wide</metric-style>
+      <passive>
+        <passive-if-name>{{ PASSIVE_INTERFACE }}</passive-if-name> 
+      </passive>
+      {%- if SR -%}
+      <segment-routing>
+        <enabled>true</enabled>
+      </segment-routing>
+      {%- endif -%}
+    </instance>
+  </isis>
+</config>
+
+

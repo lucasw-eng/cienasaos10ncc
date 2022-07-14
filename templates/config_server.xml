@@ -1,0 +1,26 @@
+<config>
+  <system xmlns="http://openconfig.net/yang/system" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <aaa>
+      <server-groups>
+        <server-group>
+          <name>{{ GROUP_NAME }}</name>
+          <servers>
+            {% for SERVER in SERVER_LIST -%}
+            <server>
+              <address>{{ SERVER }}</address>
+              <{{ SERVER_TYPE }}>
+                <config>
+                  <acct-port>{{ ACCT_PORT }}</acct-port> 
+                  <auth-port>{{ AUTH_PORT }}</auth-port> 
+                  <retransmit-attempts>{{ RETRANSMIT_ATTEMPTS }}</retransmit-attempts> 
+                  <secret-key>{{ SECRET_KEY }}</secret-key>
+                </config>
+              </{{ SERVER_TYPE }}>
+            </server>
+            {%- endfor -%}
+          </servers>
+        </server-group>
+      </server-groups>
+    </aaa>
+  </system>
+</config>

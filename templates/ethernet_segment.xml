@@ -1,0 +1,21 @@
+<config>
+  <evpn xmlns="http://ciena.com/ns/yang/ciena-evpn"> 
+    <ethernet-segments>
+      <ethernet-segment>
+        <name>{{ ETHERNET_SEGMENT_NAME }}</name>
+        <logical-port>{{ LOGICAL_PORT }}</logical-port>
+        <ethernet-segment-identifier>
+          {%- if ES_TYPE == "MAC" -%}
+          <mac-based>
+            <system-mac-address>{{ MAC_ADDRESS }}</system-mac-address>
+          </mac-based>
+          {%- else -%}
+          <arbitrary>
+            <arbitrary>{{ ES_ID }}</arbitrary>
+          </arbitrary>
+          {%- endif -%}
+        </ethernet-segment-identifier>
+      </ethernet-segment>
+    </ethernet-segments>
+  </evpn>
+</config>

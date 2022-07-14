@@ -1,0 +1,14 @@
+<config>
+	<fds xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fd">
+		{% if FD_DELETE -%}
+		<fd operation="delete">
+			<name>{{ FD_NAME }}</name>
+		</fd>
+		{%- else -%}
+		<fd>
+			<name>{{ FD_NAME }}</name>
+			<mode>{{ FD_MODE }}</mode>
+		</fd>
+		{%- endif %}
+	</fds>
+</config>

@@ -1,0 +1,24 @@
+<config>
+	<interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+        <interface>
+			<name>{{ LOOPBACK_NAME }}</name>
+			<config>
+				<name>{{ LOOPBACK_NAME }}</name>
+				<role xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces" xmlns:cn-if="http://ciena.com/ns/yang/ciena-openconfig-interfaces">cn-if:data</role>
+				<type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">loopback</type>
+				<vrfName xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">{{ VRF_NAME }}</vrfName>
+			</config>
+			<ipv4 xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ip">
+				<addresses>
+					<address>
+						<ip>{{ IP_ADDRESS }}</ip>
+						<config>
+							<ip>{{ IP_ADDRESS }}</ip>
+							<prefix-length>{{ PREFIX_LENGTH }}</prefix-length>
+						</config>
+					</address>
+				</addresses>
+			</ipv4>
+		</interface>
+	</interfaces>
+</config>

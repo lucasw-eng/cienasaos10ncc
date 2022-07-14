@@ -1,0 +1,9 @@
+NOTES:
+
+1) Most objects can be re-created with no errors, however L3-interfaces and Loopback interfaces seem to error out when re-running the same script
+2) When NCC Client fails to connnect application halts, make this more user-friendly
+3) _Check_response only looks for <ok/> eventually should add logic to return a proper friendly error message to the user
+4) Setup proper logging every run should generate a new log file (hostname-timestamp)
+5) Fix the build process
+6) Convert remaining constants to jinja2 templates
+7) Add 'delete' operation conditional to jinja2 templates

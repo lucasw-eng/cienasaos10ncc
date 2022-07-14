@@ -1,0 +1,15 @@
+<config>
+  <system xmlns="http://openconfig.net/yang/system" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <aaa>
+      <server-groups>
+        <server-group>
+          <name>{{ GROUP_NAME }}</name>
+          <config>
+            <name>{{ GROUP_NAME }}</name>
+            <type xmlns:oc-aaa="http://openconfig.net/yang/aaa">oc-aaa:{{ GROUP_TYPE }}</type>
+          </config>
+        </server-group>
+      </server-groups>
+    </aaa>
+  </system>
+</config>

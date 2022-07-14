@@ -1,0 +1,21 @@
+<config>
+  <system xmlns="http://openconfig.net/yang/system" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <aaa>
+      <server-groups>
+        <server-group>
+          <name>{{ GROUP_NAME }}</name>
+          <servers>
+            {% for SERVER in SERVER_LIST -%}
+            <server>
+              <address>{{ SERVER }}</address>
+              <config>
+                <address>{{ SERVER }}</address>
+              </config>
+            </server>
+            {%- endfor -%}
+          </servers>
+        </server-group>
+      </server-groups>
+    </aaa>
+  </system>
+</config>

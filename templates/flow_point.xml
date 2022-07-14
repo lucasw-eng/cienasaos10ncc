@@ -1,0 +1,17 @@
+<config>
+	<fps xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fp">
+    {% if FP_DELETE -%}
+  	<fp operation="delete">
+      <name>{{ FP_NAME }}</name>
+		</fp> 
+    {% else -%}
+    <fp>
+      <name>{{ FP_NAME }}</name>
+      <fd-name>{{ FD_NAME }}</fd-name>
+      <logical-port>{{ LOGICAL_PORT }}</logical-port>
+      <classifier-list>{{ CLASSIFIER_NAME }}</classifier-list>
+      <stats-collection>on</stats-collection>
+    </fp> 
+    {%- endif %}
+	</fps>
+</config>

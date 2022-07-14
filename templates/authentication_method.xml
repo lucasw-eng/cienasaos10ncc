@@ -1,0 +1,14 @@
+<config>
+	<system xmlns="http://openconfig.net/yang/system" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+		<aaa>
+			<authentication>
+				<config>
+					{% for METHOD in AUTHENTICATION_METHOD -%}
+					<authentication-method>{{ METHOD }}</authentication-method>
+					{%- endfor -%}
+				</config>
+			</authentication>
+		</aaa>
+	</system>
+</config>
+

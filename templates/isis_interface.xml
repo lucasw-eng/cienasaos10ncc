@@ -1,0 +1,26 @@
+<config>
+  <isis xmlns="http://ciena.com/ns/yang/ciena-isis"> 
+    <instance>
+      <tag>{{ INSTANCE_TAG }}</tag>
+      <interfaces>
+        <interface>
+          <name>{{ INTERFACE_NAME }}</name> 
+          <interface-type>{{ INTERFACE_TYPE }}</interface-type> 
+          <level-type>{{ LEVEL_TYPE }}</level-type> 
+          {%- if AUTHENTICATION %}
+          <{{ LEVEL_TYPE }}>
+            <password>{{ PASSWORD }}
+          </{{ LEVEL_TYPE }}>
+          {%- endif %}
+          <lsp-interval>34</lsp-interval> 
+          <lsp-retransmit-interval>6</lsp-retransmit-interval> 
+          <hello-padding>false</hello-padding>
+          <ldp-igp-sync>
+            <level-type>{{ LEVEL_TYPE }}</level-type>
+            <hold-down>{{ HOLD_DOWN_TIMER }}</hold-down>
+          </ldp-igp-sync>
+        </interface>
+      </interfaces>
+    </instance>
+  </isis>
+</config>

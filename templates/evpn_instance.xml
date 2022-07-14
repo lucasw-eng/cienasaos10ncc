@@ -1,0 +1,25 @@
+<config>
+  <evpn xmlns="http://ciena.com/ns/yang/ciena-evpn"> 
+    <evpn-instances>
+      <evpn-instance>
+        <id>{{ EVPN_INSTANCE_ID }}</id>
+        <vpws-cross-connect-fd>
+          <forwarding-domain>{{ EVPN_FORWARDING_DOMAIN }}</forwarding-domain> 
+          <local-service-id>{{ LOCAL_SERVICE_ID }}</local-service-id> 
+          <remote-service-id>{{ REMOTE_SERVICE_ID }}</remote-service-id>
+        </vpws-cross-connect-fd>
+        {% if RD -%}
+        <route-distinguisher>
+          <ip-based>
+            <value>{{ ROUTE_DISTINGUISHER }}</value>
+          </ip-based>
+        </route-distinguisher>
+        {%- endif %}
+        <vpn-target>
+          <route-target>{{ ROUTE_TARGET }}</route-target>
+          <route-target-type>both</route-target-type>
+        </vpn-target>
+      </evpn-instance>
+    </evpn-instances>
+  </evpn>
+</config>

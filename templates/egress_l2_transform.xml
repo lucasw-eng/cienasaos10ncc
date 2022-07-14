@@ -1,0 +1,24 @@
+<config>
+  <fps xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fp">
+    <fp>
+      <name>{{ FP_NAME }}</name>
+      <egress-l2-transform>
+        <egress-name>out</egress-name>
+        <vlan-stack>
+          <tag>{{ VLAN_TAG }}</tag>
+          {% if action == "PUSH" -%}
+            <push-tpid>tpid-8100</push-tpid>
+            <push-vid>{{ VLAN_ID }}</push-vid>
+          {%- endif -%}
+          {% if action == "STAMP" -%}
+            <stamp-tpid>tpid-8100</stamp-tpid>
+            <stamp-vid-value>{{ VLAN_ID }}</stamp-vid-value>
+          {%- endif -%}
+          {% if action == "POP" %}
+            <pop-type></pop-type>
+          {%- endif -%}
+        </vlan-stack>
+      </egress-l2-transform>
+    </fp> 
+  </fps>
+</config>

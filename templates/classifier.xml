@@ -1,0 +1,26 @@
+<config>
+	<classifiers xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-classifier">
+		{% if C_DELETE -%}
+		<classifier operation="delete">
+     	<name>{{ CLASSIFIER_NAME }}</name>
+    </classifier>
+    {% else -%}
+		<classifier>
+      		<name>{{ CLASSIFIER_NAME }}</name>
+      		<filter-entry>
+      			<filter-parameter xmlns:classifier="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-classifier">vtag-stack</filter-parameter>
+        		<logical-not>false</logical-not>
+        		{% if TAGGED -%}
+        		<vtags>
+        			<tag>{{ VLAN_TAG }}</tag>
+        			<tpid>tpid-8100</tpid>
+        			<vlan-id>{{ VLAN_ID }}</vlan-id>
+        		</vtags>
+        		{%- else -%}
+        		<untagged-exclude-priority-tagged>{{ UNTAGGED_PRIORITY_BIT }}</untagged-exclude-priority-tagged>
+        		{%- endif %}
+      		</filter-entry>
+    	</classifier>
+    	{%- endif %}
+  	</classifiers>
+</config>

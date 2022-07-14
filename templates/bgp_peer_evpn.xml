@@ -1,0 +1,18 @@
+<config>
+  <bgp xmlns="http://ciena.com/ns/yang/ciena-bgp" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <instance>
+      <as>{{ ASN }}</as>
+      <router-id>{{ ROUTER_ID }}</router-id>
+      <peer>
+        <address>{{ PEER_ADDRESS }}</address>
+        <remote-as>{{ REMOTE_AS }}</remote-as>
+        <update-source-interface>{{ UPDATE_SOURCE_INTERFACE }}</update-source-interface>
+        <address-family>
+          <afi>l2vpn</afi>
+          <safi>evpn</safi>
+          <activate>true</activate>
+        </address-family>
+      </peer>
+    </instance>
+  </bgp>
+</config>

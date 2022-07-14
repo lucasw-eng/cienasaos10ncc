@@ -1,0 +1,33 @@
+<config>
+  <interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <interface>
+      <name>{{ INTERFACE_NAME }}</name>
+        <config>
+          <mtu>1500</mtu>
+          <name>{{ INTERFACE_NAME }}</name>
+          <admin-status xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">true</admin-status>
+          <cos-to-frame-map xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">default-c2f</cos-to-frame-map>
+          <frame-to-cos-map xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">default-f2c</frame-to-cos-map>
+          <role xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces" xmlns:cn-if="http://ciena.com/ns/yang/ciena-openconfig-interfaces">data</role>
+          <type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">ip</type>
+          <underlay-binding xmlns="http://ciena.com/ns/yang/ciena-underlay-binding">
+            <config>
+              <fd>{{ FD_NAME }}</fd>
+            </config>
+          </underlay-binding>
+          <vrfName xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">{{ VRF_NAME }}</vrfName>
+        </config>
+        <ipv4 xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ip"> 
+        <addresses>
+          <address>
+            <ip>{{ IP_ADDRESS }}</ip>
+            <config>
+              <ip>{{ IP_ADDRESS }}</ip>
+              <prefix-length>{{ PREFIX_LENGTH }}</prefix-length>
+            </config>
+          </address>
+        </addresses>
+      </ipv4>
+    </interface>
+  </interfaces>
+</config>
