@@ -4,7 +4,7 @@ setup(
     name='cienasaos10ncc',
     version='0.1.0',    
     description='Backend Library to interface with Ciena SAOS 10 devices.',
-    url='https://github.com/brainscan/cienasaos10ncc',
+    url='https://github.com/braincan/cienasaos10ncc',
     author='Lucas Wood',
     author_email='lucasw@lucaswood.net',
     license='Apache License',
