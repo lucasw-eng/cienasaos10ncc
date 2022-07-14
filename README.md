@@ -77,4 +77,4 @@ Install my-project with pip
 ```
 
 ## Authors
-* [Lucas Wood] (mailto:lucasw@lucaswood.net)
+[Lucas Wood] (mailto:lucasw@lucaswood.net)
