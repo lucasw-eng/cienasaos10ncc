@@ -1,5 +1,10 @@
 <config>
   <isis xmlns="http://ciena.com/ns/yang/ciena-isis"> 
+    {%- if OPERATION_DELETE -%}
+    <instance operation="delete">
+      <tag> {{ INSTANCE_TAG }}</tag>
+    </instance>
+    {%- else -%}
     <instance>
       <tag>{{ INSTANCE_TAG }}</tag>
       <net>{{ NET_ID }}</net> 
@@ -14,6 +19,7 @@
       </segment-routing>
       {%- endif -%}
     </instance>
+    {%- endif -%}
   </isis>
 </config>
 

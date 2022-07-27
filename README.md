@@ -10,6 +10,7 @@ Current functions implemented so far:
  * get_flow_points()                        : Returns a list of flow points configured on the device
  * get_classifiers()                        : Returns a list of classifiers configured on the device
  * get_g8032_rings()                        : Returns a list of 8032 rings and ERP instances configured on the device and their current state
+ * get_ip_interfaces()                      : Returns a list of IP interfaces and their state from the device.
  * create_classifier()                      : Creates a classifier on the device
  * create_forwarding_domain()               : Creates a forwarding domain on the device
  * create_flow_point()                      : Creates a flow point on the device
@@ -33,13 +34,17 @@ Current functions implemented so far:
  * delete_forwarding_domain()               : Deletes a forwarding domain from the device
  * delete_g8032_logicalRing()               : Deletes a G.8032 Logical Ring from the device
  * delete_g8032_virtualRing()               : Deletes a G.8032 Virtual Ring from the device
+ * delete_isis_instance()                   : Deletes an ISIS instance from the device
+ * delete_isis_interface()                  : Remove an interface from the ISIS process
+ * delete_bgp_instance()                    : Remove a BGP Instance from the device
+ * delete_bgp_peer()                        : Removes a peer from a given BGP instance
 
 ## Timeline
 
 |  Date  |  Release  |  Description  |
 | :----: | :-------: | :-----------: |
 | 07/11/2022 | `0.2.0`| Initial Creation of pip package and initial function support. |
-| 06/29/2022 | `0.1.` | Initial creation of the repository and application. |
+| 06/29/2022 | `0.1.0`| Initial creation of the repository and application. |
 
 ## Requirements
 

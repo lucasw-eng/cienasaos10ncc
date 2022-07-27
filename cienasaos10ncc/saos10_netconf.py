@@ -397,7 +397,116 @@ class SAOS10NETCONFDriver():
 		rpc_reply = self.device.get(filter=("subtree",C.SYSTEM_MACS_RPC_REQ_FILTER)).xml
 		print(rpc_reply) #Used for debugging purposes
 		#Converts string to etree
-		return system_macs
+		return system_macsc
+
+	def get_ip_interfaces(self) -> dict:
+		""" Returns a list of IP interfaces and their state from the device.
+
+		:return Will return a dictionary of all IP interface details.
+		"""
+		ip_interfaces = {}
+		rpc_reply = self.device.get(filter=("subtree",C.IP_INTERFACES_REQ_FILTER)).xml
+		result_tree = ETREE.fromstring(bytes(rpc_reply, encoding='utf8'))
+
+		interfaces_xpath = ".//interfaces:interfaces/"
+
+		for interface in result_tree.xpath(interfaces_xpath + "/interfaces:interface", default="", namespaces=C.NS):
+			# Reset variables
+			interface_mtu = "";
+			interface_description = "";
+			interface_admin_status = "";
+			interface_vrf = ""
+			interface_oper_status = ""
+			interface_last_change = ""
+			interface_mac = ""
+			interface_dhcpv4 = ""
+			interface_dhcpv4_prefix = ""
+			interface_dhcpv4_client = ""
+			interface_dhcpv6_client = ""
+			interface_ipv4_ip = ""
+			interface_ipv4_prefix = ""
+			interface_ipv4_origin = ""
+			interface_in_octets = ""
+			interface_out_octets = ""
+			interface_in_packets = ""
+			interface_out_packets = ""
+			interface_in_dropped_pkts = ""
+			interface_name = interface.find('interfaces:name', C.NS).text.strip()
+			config_node = interface.find('interfaces:config', C.NS)
+			state_node = interface.find('interfaces:state', C.NS)
+			ipv4_node = interface.find('ipv4:ipv4', C.NS)
+			for child_node in config_node:
+				if child_node.tag == "{http://openconfig.net/yang/interfaces}mtu":
+					interface_mtu = child_node.text.strip()
+				elif child_node.tag == "{http://openconfig.net/yang/interfaces}description":
+					interface_description = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}admin-status":
+					interface_admin_status = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}vrfName":
+					interface_vrf = child_node.text.strip()
+			for child_node in state_node:
+				if child_node.tag == "{http://openconfig.net/yang/interfaces}oper-status":
+					interface_oper_status = child_node.text.strip()
+				elif child_node.tag == "{http://openconfig.net/yang/interfaces}last-change":
+					interface_last_change = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}mac-address":
+					interface_mac = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}dhcp-v4-ip":
+					interface_dhcpv4 = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}dhcp-v4-prefix-length":
+					interface_dhcpv4_prefix = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}dhcp-v4-client":
+					interface_dhcpv4_client = child_node.text.strip()
+				elif child_node.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}dhcp-v6-client":
+					interface_dhcpv6_client = child_node.text.strip()
+				elif child_node.tag == "{http://openconfig.net/yang/interfaces}counters":
+					for counter_nodes in child_node:
+						if counter_nodes.tag == "{http://openconfig.net/yang/interfaces}in-octets":
+							interface_in_octets = counter_nodes.text.strip()
+						elif counter_nodes.tag == "{http://openconfig.net/yang/interfaces}out-octets":
+							interface_out_octets = counter_nodes.text.strip()
+						elif counter_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}in-pkts":
+							interface_in_packets = counter_nodes.text.strip()
+						elif counter_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}out-pkts":
+							interface_out_packets = counter_nodes.text.strip()
+						elif counter_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-interfaces}in-dropped-pkts":
+							interface_in_dropped_pkts = counter_nodes.text.strip()
+			if ipv4_node is not None:
+				for addresses_node in ipv4_node:
+					for address_node in addresses_node:
+						for address_child_nodes in address_node:
+							if address_child_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-if-ip}state":
+								for state_address_nodes in address_child_nodes:
+									if state_address_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-if-ip}ip":
+										interface_ipv4_ip = state_address_nodes.text.strip()
+									elif state_address_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-if-ip}prefix-length":
+										interface_ipv4_prefix = state_address_nodes.text.strip()
+									elif state_address_nodes.tag == "{http://ciena.com/ns/yang/ciena-openconfig-if-ip}origin":
+										interface_ipv4_origin = state_address_nodes.text.strip()	
+			ip_interfaces[interface_name] = {
+				"MTU": interface_mtu,
+				"DESCRIPTION": interface_description,
+				"MAC": interface_mac,
+				"ADMIN-STATUS": interface_admin_status,
+				"OPERATING-STATUS": interface_oper_status,
+				"LAST-CHANGE": interface_last_change,
+				"VRF": interface_vrf,
+				"DHCPv4-IP": interface_dhcpv4,
+				"DHCPv4-PREFIX": interface_dhcpv4_prefix,
+				"DHCPv4-CLIENT-STATUS": interface_dhcpv4_client,
+				"DHCPv6-CLIENT-STATUS": interface_dhcpv6_client,
+				"COUNTERS": {
+					"IN-OCTETS": interface_in_octets,
+					"OUT-OCTETS": interface_out_octets,
+					"IN-PKTS": interface_in_packets,
+					"OUT-PKTS": interface_out_packets,
+					"IN-DROPPED-PKTS": interface_in_dropped_pkts
+				},
+				"IPv4-IP": interface_ipv4_ip,
+				"IPv4-PREFIX": interface_ipv4_prefix,
+				"IPv4-ORIGIN": interface_ipv4_origin
+			}
+		return ip_interfaces
 
 	def create_classifier(self, name: str, tagged: bool, 
 		vlan_tags: "list of integers", vlan_ids: "list of vlan_ids (integers)", untagged_priority_bit: str) -> bool:
@@ -686,6 +795,7 @@ class SAOS10NETCONFDriver():
 		"""
 		isis_instance_template = self.env.get_template("isis_instance.xml")
 		isis_instance_rendered = isis_instance_template.render(
+			OPERATION_DELETE=False,
 			INSTANCE_TAG=tag,
 			NET_ID=net_id,
 			LEVEL_TYPE=level_type,
@@ -709,6 +819,7 @@ class SAOS10NETCONFDriver():
 		"""
 		isis_interface_template = self.env.get_template("isis_interface.xml")
 		isis_interface_rendered = isis_interface_template.render(
+			OPERATION_DELETE=False,
 			INSTANCE_TAG=tag,
 			INTERFACE_NAME=interface_name,
 			INTERFACE_TYPE=interface_type,
@@ -731,6 +842,7 @@ class SAOS10NETCONFDriver():
 		"""
 		bgp_instance_template = self.env.get_template("bgp.xml")
 		bgp_instance_rendered = bgp_instance_template.render(
+			OPERATION_DELETE=False,
 			ASN=asn,
 			ROUTER_ID=router_id
 		)
@@ -751,6 +863,7 @@ class SAOS10NETCONFDriver():
 		"""
 		bgp_peer_template = self.env.get_template("bgp_peer_evpn.xml")
 		bgp_peer_rendered = bgp_peer_template.render(
+			OPERATION_DELETE=False,
 			ASN=asn,
 			ROUTER_ID=router_id,
 			PEER_ADDRESS=peer_address,
@@ -764,8 +877,20 @@ class SAOS10NETCONFDriver():
 
 	def create_evpn_instance(self, evpn_instance_id: int, forwarding_domain: str, local_service_id: int, 
 		remote_service_id: int, route_target: str, custom_rd: bool=False, rd_value: str="") -> bool:
+		""" Creates an EVPN Instance
+
+		:param evpn_instance_id: The EVPN instance identifier
+		:param forwarding_domain: The forwarding domain the EVPN instance will attach to
+		:param local_service_id: The local service identifier to use for this instance
+		:param remote_service_id: The remote service identier for this instance
+		:param route_target: The route target to use for this service
+		:param custom_rd: Specifies whether a custom RD will be defined or not (default: False)
+		:param rd_value: If custom_rd is set then the evpn instance will use this value for the RD
+		:return Will return True on success and False on failure.
+		"""
 		evpn_instance_template = self.env.get_template("evpn_instance.xml")
 		evpn_instance_rendered = evpn_instance_template.render(
+			OPERATION_DELETE=False,
 			EVPN_INSTANCE_ID=evpn_instance_id,
 			EVPN_FORWARDING_DOMAIN=forwarding_domain,
 			LOCAL_SERVICE_ID=local_service_id,
@@ -774,7 +899,6 @@ class SAOS10NETCONFDriver():
 			RD=custom_rd,
 			ROUTE_DISTINGUISHER=rd_value
 		)
-		print(evpn_instance_rendered)
 		rpc_reply = self.device.edit_config(target="running", config=evpn_instance_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "CREATE EVPN INSTANCE"):
 			return False
@@ -799,7 +923,6 @@ class SAOS10NETCONFDriver():
 			MAC_ADDRESS=mac_address,
 			ES_ID=es_id
 		)
-		print(ethernet_segment_rendered)
 		rpc_reply = self.device.edit_config(target="running", config=ethernet_segment_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "SET ETHERNET SEGMENT"):
 			return False
@@ -876,5 +999,91 @@ class SAOS10NETCONFDriver():
 		g8032_conf = C.DELETE_G8032_VIRTUAL_RING % (lr_name, vr_name)
 		rpc_reply = self.device.edit_config(target="running", config=g8032_conf, default_operation = "merge")
 		if not self._check_response(rpc_reply, "DELETE_G8032_VIRTUAL_RING"):
+			return False
+		return True
+
+	def delete_isis_instance(self, isis_instance_name:str) -> bool:
+		""" Deletes an ISIS instance
+
+		:param isis_instance_name: The name/tag of the ISIS instance
+		:return Will return True on success and False on failure.
+		"""
+		isis_template = self.env.get_template("isis_instance.xml")
+		isis_rendered = isis_template.render(
+			OPERATION_DELETE=True,
+			INSTANCE_TAG=isis_instance_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=isis_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "DELETE_ISIS_INSTANCE"):
+			return False
+		return True
+
+	def delete_isis_interface(self, isis_instance_name: str, interface_name: str) -> bool:
+		""" Delete an interface from the ISIS process
+
+		:param isis_instance_name: The name/tag of the ISIS instance.
+		:param interface_name: The interface to remove from the ISIS process.
+		:return Will return True on success and False on failure.
+		"""
+		isis_interface_template = self.env.get_template("isis_interface.xml")
+		isis_rendered = isis_interface_template.render(
+			OPERATION_DELETE=True,
+			INSTANCE_TAG=isis_instance_name,
+			INTERFACE_NAME=interface_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=isis_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "DELETE_ISIS_INTERFACE"):
+			return False
+		return True
+
+	def delete_bgp_instance(self, bgp_asn: str) -> bool:
+		""" Deletes a BGP Process
+
+		:param bgp_asn: The BGP Process ASN
+		:return Will return True on success and False on failure.
+		"""
+		bgp_template = self.env.get_template("bgp.xml")
+		bgp_rendered = bgp_template.render(
+			OPERATION_DELETE=True,
+			ASN=bgp_asn
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bgp_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "DELETE_BGP_INSTANCE"):
+			return False
+		return True
+
+	def delete_bgp_peer(self, bgp_asn: str, router_id: str, peer_address: str) -> bool:
+		""" Deletes a BGP Peer
+
+		:param bgp_asn: The BGP Process ASN
+		:param router_id: The router id for the BGP Process
+		:param peer_address: The peer address IP to delete
+		:return Will return True on success and False on failure.
+		"""
+		bgp_peer_template = self.env.get_template("bgp_peer_evpn.xml")
+		bgp_peer_rendered = bgp_peer_template.render(
+			OPERATION_DELETE=True,
+			ASN=bgp_asn,
+			ROUTER_ID=router_id,
+			PEER_ADDRESS=peer_address
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bgp_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "DELETE_BGP_INSTANCE"):
+			return False
+		return True
+
+	def delete_evpn_instance(self, evpn_instance_id: int) -> bool:
+		""" Deletes an EVPN Instance 
+
+		:param evpn_instance_id: The EVPN instance ID to be deleted.
+		:return Will return True on success and False on failure.
+		"""
+		evpn_instance_template = self.env.get_template("evpn_instance.xml")
+		evpn_instance_rendered = evpn_instance_template.render(
+			OPERATION_DELETE=True,
+			EVPN_INSTANCE_ID=evpn_instance_id
+		)
+		rpc_reply = self.device.edit_config(target="running", config=evpn_instance_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "CREATE EVPN INSTANCE"):
 			return False
 		return True

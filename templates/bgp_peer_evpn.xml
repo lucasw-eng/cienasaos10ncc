@@ -3,6 +3,11 @@
     <instance>
       <as>{{ ASN }}</as>
       <router-id>{{ ROUTER_ID }}</router-id>
+      {%- if OPERATION_DELETE -%}
+      <peer operation="delete">
+        <address>{{ PEER_ADDRESS }}</address>
+      </peer>
+      {%- else -%}
       <peer>
         <address>{{ PEER_ADDRESS }}</address>
         <remote-as>{{ REMOTE_AS }}</remote-as>
@@ -13,6 +18,7 @@
           <activate>true</activate>
         </address-family>
       </peer>
+      {%- endif -%}
     </instance>
   </bgp>
 </config>

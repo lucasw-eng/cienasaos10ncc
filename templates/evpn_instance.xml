@@ -1,6 +1,11 @@
 <config>
   <evpn xmlns="http://ciena.com/ns/yang/ciena-evpn"> 
     <evpn-instances>
+      {%- if OPERATION_DELETE -%}
+      <evpn-instance operation="delete">
+        <id>{{ EVPN_INSTANCE_ID }}</id>
+      </evpn-instance>
+      {%- else -%}
       <evpn-instance>
         <id>{{ EVPN_INSTANCE_ID }}</id>
         <vpws-cross-connect-fd>
@@ -20,6 +25,7 @@
           <route-target-type>both</route-target-type>
         </vpn-target>
       </evpn-instance>
+      {%- endif -%}
     </evpn-instances>
   </evpn>
 </config>

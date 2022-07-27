@@ -14,6 +14,8 @@ NS = {
 	"fp": "http://ciena.com/ns/yang/ciena-mef-fp",
 	"fps": "urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fp",
 	"fp-show": "http://ciena.com/ns/yang/ciena-mef-fp-show",
+	"interfaces": "http://openconfig.net/yang/interfaces",
+	"ipv4": "http://ciena.com/ns/yang/ciena-openconfig-if-ip",
 	"isis": "http://ciena.com/ns/yang/ciena-isis",
 	"ospf": "http://ciena.com/ns/yang/ciena-ospf",
 	"rib": "http://ciena.com/ns/yang/ciena-rip",
@@ -83,6 +85,11 @@ SYSTEM_MACS_RPC_REQ_FILTER = """
 <system xmlns="http://openconfig.net/yang/system"> 
     <macs />
 </system>
+"""
+
+# subtree filter to get ip interfaces using GET CONFIG RPC
+IP_INTERFACES_REQ_FILTER = """
+<oc-if:interfaces xmlns:oc-if="http://openconfig.net/yang/interfaces"/>
 """
 
 # Enabled G8032 globally and enabled notifications globally for the protocol

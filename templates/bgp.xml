@@ -1,5 +1,10 @@
 <config>
   <bgp xmlns="http://ciena.com/ns/yang/ciena-bgp" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    {%- if OPERATION_DELETE -%}
+    <instance operation="delete">
+      <as>{{ ASN }}</as>
+    </instance>
+    {%- else -%}
     <instance>
       <as>{{ ASN }}</as>
       <router-id>{{ ROUTER_ID }}</router-id>
@@ -8,5 +13,6 @@
         <safi>evpn</safi>
       </address-family>
     </instance>
+    {%- endif -%}
   </bgp>
 </config>

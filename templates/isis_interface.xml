@@ -3,6 +3,11 @@
     <instance>
       <tag>{{ INSTANCE_TAG }}</tag>
       <interfaces>
+        {%- if OPERATION_DELETE -%}
+        <interface operation="delete">
+          <name>{{ INTERFACE_NAME }}</name> 
+        </interface>
+        {%- else -%}
         <interface>
           <name>{{ INTERFACE_NAME }}</name> 
           <interface-type>{{ INTERFACE_TYPE }}</interface-type> 
@@ -20,6 +25,7 @@
             <hold-down>{{ HOLD_DOWN_TIMER }}</hold-down>
           </ldp-igp-sync>
         </interface>
+        {%- endif %}
       </interfaces>
     </instance>
   </isis>
