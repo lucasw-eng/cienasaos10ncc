@@ -1,0 +1,23 @@
+<config>
+	<interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+		<interface>
+          <name>{{ AGG_NAME }}</name>
+          <config>
+            <name>{{ AGG_NAME }}</name>
+			<agg xmlns="urn:ietf:params:xml:ns:yang:ciena-ieee-lag">
+				{% if MEMBOR_REMOVE -%}
+				<member-ports xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" operation="remove">
+					<member-port>{{ PORT }}</member-port>
+				</member-ports>
+				{% else -%}
+				<member-ports>
+					<member-port>{{ PORT }}</member-port>
+					<protection-port xmlns="urn:ietf:params:xml:ns:yang:ciena-ext-lag">false</protection-port>
+              	</member-ports>
+				{%- endif %}
+			</agg>
+			<type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">lag</type>
+          </config>
+        </interface>
+      </interfaces>
+</config>

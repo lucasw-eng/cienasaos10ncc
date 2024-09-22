@@ -1,0 +1,16 @@
+<config>
+	<interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+		<interface>
+  			<name>{{ INT_NAME }}</name>
+  			<config>
+				<name>{{ INT_NAME }}</name>
+				<description>{{ INT_DESCRIPTION }}</description>
+				<agg-port-config xmlns="urn:ietf:params:xml:ns:yang:ciena-ext-lag">
+					<agg-admin-mode xmlns:ciena-ext-lag="urn:ietf:params:xml:ns:yang:ciena-ext-lag">agg-mode-lacp</agg-admin-mode>
+					<lacp-activity xmlns:ciena-ieee-lag="urn:ietf:params:xml:ns:yang:ciena-ieee-lag">ciena-ieee-lag:lacp-active</lacp-activity>
+					<lacp-timeout xmlns:ciena-ieee-lag="urn:ietf:params:xml:ns:yang:ciena-ieee-lag">ciena-ieee-lag:lacp-timeout-short</lacp-timeout>
+            	</agg-port-config>
+          	</config>
+        </interface>
+	</interfaces>
+</config>

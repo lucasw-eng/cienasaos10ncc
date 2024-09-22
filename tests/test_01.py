@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 #
 # Prompts for username and password and connects to the specified 
 # device and displays their capabilities.

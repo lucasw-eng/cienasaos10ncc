@@ -1,0 +1,19 @@
+<config>
+	{% if AGG_DELETE -%}
+	<logical-ports xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-logical-port">
+		<logical-port xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" nc:operation="delete">
+			<name>BE5</name>
+		</logical-port>
+	</logical-ports>
+	{% else -%}
+	<interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+		<interface>
+          	<name>{{ AGG_NAME }}</name>
+          	<config>
+            	<name>{{ AGG_NAME }}</name>
+				<type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">lag</type>
+        	</config>
+		</interface>
+	</interfaces>
+	{%- endif %}
+</config>

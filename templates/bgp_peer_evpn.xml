@@ -12,9 +12,18 @@
         <address>{{ PEER_ADDRESS }}</address>
         <remote-as>{{ REMOTE_AS }}</remote-as>
         <update-source-interface>{{ UPDATE_SOURCE_INTERFACE }}</update-source-interface>
+        {% if BFD -%}
+        <bfd>
+            <enable>true</enable>
+            <multihop>true</multihop>
+        </bfd>
+        {% endif -%}
         <address-family>
           <afi>l2vpn</afi>
           <safi>evpn</safi>
+          {%- if RR_CLIENT -%}
+          <route-reflector-client>true</route-reflector-client>
+          {%- endif -%}
           <activate>true</activate>
         </address-family>
       </peer>

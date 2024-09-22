@@ -3,6 +3,9 @@ NS = {
 	"arp": "http://ciena.com/ns/yang/ciena-arp",
 	"bfd": "http://ciena.com/ns/yang/ciena-bdf",
 	"bgp": "http://ciena.com/ns/yang/ciena-bgp",
+	"logical-ports":"urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-logical-port",
+    "ciena-ext-lag": "urn:ietf:params:xml:ns:yang:ciena-ext-lag",
+	"ciena-ieee-lag": "urn:ietf:params:xml:ns:yang:ciena-ieee-lag",
 	"classifier": "http://ciena.com/ns/yang/ciena-mef-classifier",
 	"classifiers": "urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-classifier",
 	"classifier-show": "http://ciena.com/ns/yang/ciena-mef-classifier-show",
@@ -10,6 +13,7 @@ NS = {
 	"fd": "http://ciena.com/ns/yang/ciena-mef-fd",
 	"fd-deviation": "http://ciena.com/ns/yang/ciena-mef-fd-deviation",
 	"fd-show": "http://ciena.com/ns/yang/ciena-mef-fd-show",
+	"fdbs-state": "urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-mac-management",
 	"fds": "urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fd",
 	"fp": "http://ciena.com/ns/yang/ciena-mef-fp",
 	"fps": "urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fp",
@@ -17,7 +21,9 @@ NS = {
 	"interfaces": "http://openconfig.net/yang/interfaces",
 	"ipv4": "http://ciena.com/ns/yang/ciena-openconfig-if-ip",
 	"isis": "http://ciena.com/ns/yang/ciena-isis",
+	"member-ports": "urn:ietf:params:xml:ns:netconf:base:1.0",
 	"ospf": "http://ciena.com/ns/yang/ciena-ospf",
+	"protection-port": "http://www.ciena.com/ns/yang/ciena-ext-lag",
 	"rib": "http://ciena.com/ns/yang/ciena-rip",
 	"system": "http://openconfig.net/yang/system",
 	"ztp": "http://ciena.com/ns/yang/ciena-ztp"	
@@ -44,11 +50,30 @@ FPS_RPC_REQ_FILTER = """
 <mef-fp:fps xmlns:mef-fp="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-fp" />
 """
 
+# subtree filter to get interfaces using GET CONFIG RPC
+ETTPS_RPC_REQ_FILTER = """
+<interfaces xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"/>
+"""
+
+# subtree filter to get logical-ports using GET CONFIG RPC
+LOGICALPORTS_RPC_REQ_FILTER = """
+<mef-logical-port:logical-ports xmlns:mef-logical-port="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-logical-port"/>
+"""
+
 # subtree filter to get classifiers using GET CONFIG RPC
 CLASSIFIERS_RPC_REQ_FILTER = """
 <classifiers xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-classifier">
 	<classifier />
 </classifiers>
+"""
+
+# subtree filter to get MAC entries for a given forarding domain.
+FDBS_RPC_REQ_FILTER = """
+<fdbs-state xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-mef-mac-management">
+	<fdb>
+		<name>{name}</name>
+	</fdb>
+</fdbs-state>
 """
 
 # subtree filter to get forwarding domains using GET CONFIG RPC

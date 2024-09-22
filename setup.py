@@ -2,14 +2,14 @@ from setuptools import setup
 
 setup(
     name='cienasaos10ncc',
-    version='0.1.0',    
+    version='0.8.0',    
     description='Backend Library to interface with Ciena SAOS 10 devices.',
     url='https://github.com/braincan/cienasaos10ncc',
     author='Lucas Wood',
     author_email='lucasw@lucaswood.net',
     license='Apache License',
     packages=['cienasaos10ncc'],
-    install_requires=['ncclient>=0.6.13',
+    install_requires=['ncclient>=0.6.15',
                       'jinja2', 
                       'xmltodict'                    
                       ],

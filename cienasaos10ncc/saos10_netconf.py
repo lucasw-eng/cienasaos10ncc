@@ -63,6 +63,7 @@ class SAOS10NETCONFDriver():
 			self.device = manager.connect(
 				host=self.hostname,
 				port=self.port,
+				ssh_config=True,
 				username=self.username,
 				password=self.password,
 				key_filename=self.key_file,
@@ -179,6 +180,80 @@ class SAOS10NETCONFDriver():
 		)
 		facts['hostname'] = hostname
 		return facts
+	
+	def get_ettps(self):
+		#Return all ETTP details on the device.
+		ettps = {}
+		rpc_reply = self.device.get(filter=("subtree",C.ETTPS_RPC_REQ_FILTER)).xml
+		# Converts string to etree
+		print(rpc_reply)
+		result_tree = ETREE.fromstring(bytes(rpc_reply, encoding='utf8'))
+		ettp_xpath = ".//interfaces:interfaces/"
+
+		for port in result_tree.xpath(ettp_xpath + "/interfaces:interface", default="", namespaces=C.NS):
+			#test = ETREE.tostring(port,encoding="unicode")
+			#print(test)
+			ettp_name = self._find_txt(port, "./interfaces:name", default="", namespaces=C.NS)
+			admin_status = self._find_txt(port, "./interfaces:admin-status", default="", namespaces=C.NS)
+			ettps[ettp_name] = []
+			for port_state in result_tree.xpath(ettp_xpath + "/interfaces:state", default="", namespaces=C.NS):
+				ifindex = self._find_txt(port_state, "./interfaces:ifindex", default="", namespaces=C.NS)
+				oper_status = self._find_txt(port_state, "./interfaces:oper-status", default="", namespaces=C.NS)
+				last_change = self._find_txt(port_state, "./interfaces:last-change", default="", namespaces=C.NS)
+				ettps[ettp_name].append(
+					{
+					"ifindex": ifindex,
+					"oper-status": oper_status,
+					"last-change": last_change
+					}
+				)
+
+		for port_config in result_tree.xpath(ettp_xpath + "/interfaces:config", default="", namespaces=C.NS):
+			name = self._find_txt(port_config, "./interfaces:name", default="", namespaces=C.NS)
+			# Admin Status is a boolean need to modify _find_txt to account for that.
+			admin_status = self._find_txt(port_config, "./interfaces:admin-status", default="", namespaces=C.NS)
+			mtu = self._find_txt(port_config, "./interfaces:mtu", default="", namespaces=C.NS)
+			description = self._find_txt(port_config, "./interfaces:description", default="", namespaces=C.NS)
+			vrf_name = self._find_txt(port_config, "./interfaces:vrfName", default="", namespaces=C.NS)
+			ettps[name].append(
+				{
+				"admin-status": admin_status,
+				"mtu": mtu,
+				"description": description,
+				"vrf": vrf_name
+				}
+			)
+
+		return ettps
+
+	def get_logical_ports(self):
+		#Return all logical port details on the device.
+		#init result dict
+		logical_ports = {}
+
+		rpc_reply = self.device.get(filter=("subtree",C.LOGICALPORTS_RPC_REQ_FILTER)).xml
+		# Converts string to etree
+		result_tree = ETREE.fromstring(bytes(rpc_reply, encoding='utf8'))
+
+		lgps_xpath = ".//logical-ports:logical-ports/"
+
+		for port in result_tree.xpath(lgps_xpath + "/logical-ports:logical-port", default="", namespaces=C.NS):
+			port_name = self._find_txt(port, "./logical-ports:name", default="", namespaces=C.NS)
+			port_admin_state = self._find_txt(port, "./logical-ports:admin-state", default="", namespaces=C.NS)
+			port_binding = self._find_txt(port, "./logical-ports:binding", default="", namespaces=C.NS)
+			port_mtu = self._find_txt(port, "./logical-ports:mtu", default="", namespaces=C.NS)
+			port_description = self._find_txt(port, "./logical-ports:description", default="", namespaces=C.NS)
+			# Assign values to the dictionary.
+			logical_ports[port_name] = []
+			logical_ports[port_name].append(
+				{
+				"admin-state": port_admin_state,
+				"binding": port_binding,
+				"mtu": port_mtu,
+				"description": port_description
+				}
+			)
+		return logical_ports
     
 	def get_forwarding_domains(self):
 		""" Return all configured forwarding domains on the device."""
@@ -222,7 +297,7 @@ class SAOS10NETCONFDriver():
 		for fp in result_tree.xpath(fps_xpath + "/fps:fp", default="", namespaces=C.NS):
 			fp_name = self._find_txt(fp, "./fps:name", default="", namespaces=C.NS)
 			fd_name = self._find_txt(fp, "./fps:fd-name", default="", namespaces=C.NS)
-			logical_port = int(self._find_txt(fp, "./fps:logical-port", default="", namespaces=C.NS))
+			logical_port = self._find_txt(fp, "./fps:logical-port", default="", namespaces=C.NS)
 			mtu_size = int(self._find_txt(fp, "./fps:mtu-size", default="", namespaces=C.NS))
 			classifier_list = self._find_txt(fp, "./fps:classifier-list", default="", namespaces=C.NS)
 			pfg_group = self._find_txt(fp, "./fps:pfg-group", default="", namespaces=C.NS)
@@ -298,6 +373,39 @@ class SAOS10NETCONFDriver():
 				}
 			)
 		return classifiers
+
+	def get_MAC_entries(self,fd_name: str) ->dict:
+		""" Returns all MAC Address entries in the MAC table
+			for a given forwarding domain.
+		"""
+		mac_database = {}
+		sub_tree = C.FDBS_RPC_REQ_FILTER.format(name=fd_name)
+		rpc_reply = self.device.get(filter=("subtree",sub_tree)).xml
+		# Converts string to etree
+		result_tree = ETREE.fromstring(bytes(rpc_reply, encoding='utf8'))
+
+		mac_dbs_xpath = ".//fdbs-state:fdbs-state/"
+
+		for fdb in result_tree.xpath(mac_dbs_xpath + "/fdbs-state:fdb", default="", namespaces=C.NS):
+			# Parsed return data into variables
+			fd_name = self._find_txt(fdb, "./fdbs-state:name", default="", namespaces=C.NS)
+			mac_learn_count = self._find_txt(fdb, "./fdbs-state:mac-learn-count", default="", namespaces=C.NS)
+			absent_mac_learn_count = self._find_txt(fdb, "./fdbs-state:absent-mac-learn-count", default="", namespaces=C.NS)
+			# Create entry if it doesn't exist in the return dictionary.
+			if fd_name not in mac_database.keys():
+				mac_database[fd_name] = []
+			for mac_entry in result_tree.xpath(mac_dbs_xpath + "/fdbs-state:mac-entry", default="", namespaces=C.NS):
+				mac_address = self._find_txt(mac_entry, "./fdbs-state:mac-address", default="", namespaces=C.NS)
+				flow_point = self._find_txt(mac_entry, "./fdbs-state:flow-point", default="", namespaces=C.NS)
+				mac_learn_type = self._find_txt(mac_entry, "./fdbs-state:mac-learn-type", default="", namespaces=C.NS)
+				mac_database[fd_name].append (
+					{
+					"mac-address": mac_address,
+					"flow-point": flow_point,
+					"mac-learn-type": mac_learn_type
+					}
+				)
+		return mac_database
 
 	def get_g8032_rings(self) ->dict:
 		"""Returns all G8032 Logical Ring Instances found on the system.
@@ -567,7 +675,58 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def create_flow_point(self, name: str, forwarding_domain: str, logical_port: int, classifier_list: str) -> bool:
+	def create_aggregation(self, name: str) -> bool:
+		""" Create an aggregation on SAOS10
+
+		:param name: The name of the LACP aggregation to build
+		:return Will return True on Success and False on Failure.
+		"""
+		aggregation_template = self.env.get_template("aggregation_interface.xml")
+		aggregation_rendered = aggregation_template.render(
+			AGG_DELETE=False,
+			AGG_NAME=name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=aggregation_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "CREATE_AGGREGATION_INTERFACE"):
+			return False
+		return True
+
+	def configure_aggregation_interface (self, interface_name: str, interface_description: str) -> bool:
+		""" Create an aggregation on SAOS10
+
+		:param interface_name: The interface to configure LACP parameters.
+		:param interface_description: The description to set on the interface
+		:return Will return True on Success and False on Failure.
+		"""
+		configure_aggregation_interface = self.env.get_template("interface_aggregation_config.xml")
+		configure_aggregation_interface_rendered = configure_aggregation_interface.render(
+			INT_NAME=interface_name,
+			INT_DESCRIPTION=interface_description
+		)
+		rpc_reply = self.device.edit_config(target="running", config=configure_aggregation_interface_rendered, default_operation="merge")
+		if not self._check_response(rpc_reply, "CONFIGURE_AGGREGATION_INTERFACE"):
+			return False
+		return True
+
+	def add_aggregation_member(self, name: str, interface_name: str) -> bool:
+		""" Add an interface to an aggregation port on SAOS10
+
+		:param name: The name of the aggregation to add the interface to.
+		:param interface_name: The name of the interface that will be added to the aggregation.
+		:return Will return True on success and False on failure.
+		"""
+		add_aggregation_template = self.env.get_template("add_aggregation_member.xml")
+		add_aggregation_rendered = add_aggregation_template.render(
+			AGG_NAME=name,
+			MEMBOR_REMOVE=False,
+			PORT=interface_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=add_aggregation_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "ADD_AGGREGATION_INTERFACE"):
+			return False
+		return True
+
+	def create_flow_point(self, name: str, forwarding_domain: str, logical_port: str, classifier_list: str) -> bool:
 		""" Creates a flow point on SAOS10.
 
 		:param name: The name of the flow-point being created
@@ -851,19 +1010,21 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def add_bgp_peer(self, asn: str, router_id: str, peer_address: str, remote_as: str, update_source_interface: str="loopback1") -> bool:
+	def add_bgp_peer(self, asn: str, router_id: str, peer_address: str, remote_as: str, rr_client: bool=True, update_source_interface: str="loopback1") -> bool:
 		""" Add a BGP Peer to an existing BGP Process
 
 		:param asn: The autonomous system number for the BGP instance
 		:param router_id: The router identifier to use for BGP
 		:param peer_address: The IP address of the BGP peer
 		:param remote_as: The peer's ASN
+		:param rr_client: Whether the peer is a route reflector client.
 		:param update_source_interface: The interface to use for update messages (default: loopback1)
 		:return Will return True on success and False on failure.
 		"""
 		bgp_peer_template = self.env.get_template("bgp_peer_evpn.xml")
 		bgp_peer_rendered = bgp_peer_template.render(
 			OPERATION_DELETE=False,
+			RR_client=rr_client,
 			ASN=asn,
 			ROUTER_ID=router_id,
 			PEER_ADDRESS=peer_address,
@@ -976,6 +1137,39 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
+	def delete_aggregation(self, name: str) -> bool:
+		""" Delete an aggregation on SAOS10
+
+		:param name: The name of the LACP aggregation to build
+		:return Will return True on Success and False on Failure.
+		"""
+		aggregation_template = self.env.get_template("aggregation_interface.xml")
+		aggregation_rendered = aggregation_template.render(
+			AGG_DELETE=True,
+			AGG_NAME=name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=aggregation_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "DELETE_AGGREGATION_INTERFACE"):
+			return False
+		return True
+
+	def remove_aggregation_member(self, name: str, interface_name: str) -> bool:
+		""" Add an interface to an aggregation port on SAOS10
+
+		:param name: The name of the aggregation to add the interface to.
+		:param interface_name: The name of the interface that will be added to the aggregation.
+		:return Will return True on success and False on failure.
+		"""
+		add_aggregation_template = self.env.get_template("add_aggregation_member.xml")
+		add_aggregation_rendered = add_aggregation_template.render(
+			AGG_NAME=name,
+			MEMBOR_REMOVE=True,
+			PORT=interface_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=add_aggregation_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "REMOVE_AGGREGATION_INTERFACE"):
+			return False
+		return True
 
 	def delete_g8032_logicalRing(self, name: str) -> bool:
 		""" Deletes a G8032 Logical Ring

@@ -6,6 +6,7 @@ Current functions implemented so far:
  * open()                                   : Establish the connection
  * close()                                  : Close the connection
  * get_server_capabilities()                : Retrieves and stores all supported yang models.
+ * get_logical_ports()						: Returns a list of logical ports configured on the device.
  * get_forwarding_domains()                 : Returns a list of forwarding domains configured on the device
  * get_flow_points()                        : Returns a list of flow points configured on the device
  * get_classifiers()                        : Returns a list of classifiers configured on the device
@@ -43,6 +44,8 @@ Current functions implemented so far:
 
 |  Date  |  Release  |  Description  |
 | :----: | :-------: | :-----------: |
+| 09/22/2024 | `0.8.0`| Added ETTP statistics gathering, Aggregation creation/deletion, and more testing. |
+| 07/05/2024 | `0.5.0`| Added logical ports, bug fixes, BGP enhancements, and more. |
 | 07/11/2022 | `0.2.0`| Initial Creation of pip package and initial function support. |
 | 06/29/2022 | `0.1.0`| Initial creation of the repository and application. |
 
