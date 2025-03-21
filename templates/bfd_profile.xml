@@ -1,0 +1,19 @@
+<config>
+  <bfd xmlns="http://ciena.com/ns/yang/ciena-bfd" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <profiles>
+      {%- if OPERATION_DELETE -%}
+      <ip-bfd-profile operation="delete">
+        <name>{{ PROFILE_NAME }}</name>
+      </ip-bfd-profile>
+      {%- else -%}
+      <ip-bfd-profile>
+        <name>{{ PROFILE_NAME }}</name>
+        <local-multiplier>{{ MULTIPLIER }}</local-multiplier>
+        <desired-min-tx-interval>{{ DESIRED_MIN_TX_INTERVAL }}</desired-min-tx-interval>
+        <required-min-rx-interval>{{ REQUIRED_MIN_RX_INTERVAL }}</required-min-rx-interval>
+        <accelerate>true</accelerate>
+      </ip-bfd-profile>
+      {%- endif -%}
+    </profiles>
+  </bfd>
+</config>

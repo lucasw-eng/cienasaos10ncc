@@ -2,14 +2,13 @@
   <bgp xmlns="http://ciena.com/ns/yang/ciena-bgp" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
     <instance>
       <as>{{ ASN }}</as>
-      <router-id>{{ ROUTER_ID }}</router-id>
-      {% if OPERATION_DELETE -%}
-      <peer operation="delete">
-        <address>{{ PEER_ADDRESS }}</address>
-      </peer>
-      {% else -%}
-      <peer>
-        <address>{{ PEER_ADDRESS }}</address>
+      {%- if OPERATION_DELETE -%}
+      <peer-group operation="delete">
+        <name>{{ PEER_GROUP_NAME }}</name>
+      </peer-group>
+      {%- else -%}
+      <peer-group>
+        <name>{{ PEER_GROUP_NAME }}</name>
         <remote-as>{{ REMOTE_AS }}</remote-as>
         <update-source-interface>{{ UPDATE_SOURCE_INTERFACE }}</update-source-interface>
         {% if BFD -%}
@@ -26,7 +25,7 @@
           {%- endif %}
           <activate>true</activate>
         </address-family>
-      </peer>
+      </peer-group>
       {% endif -%}
     </instance>
   </bgp>

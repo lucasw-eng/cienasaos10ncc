@@ -1,0 +1,36 @@
+<config>
+	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+		<g8032-ring>
+      <ring-name>{{ LOGICAL_RING_NAME }}</ring-name>
+      <erp-instances>
+        {%- if OPERATION_DELETE -%}
+        <erp-instance operation="delete">
+          <ring-name>{{ VIRTUAL_RING_NAME }}</ring-name>
+        </erp-instance>
+        {%- else -%}
+				<erp-instance>
+					<instance-name>{{ VIRTUAL_RING_NAME }}</instance-name> 
+					<raps-vid>{{ RAPS_VLAN_ID }}</raps-vid>
+					<raps-level>{{ RAPS_LEVEL }}</raps-level> 
+					<data-members>{{ DATA_MEMBERS }}</data-members>
+					<erp-instance-construct xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">major-ring</erp-instance-construct> 
+					<reversion>revertive</reversion>
+          <wtr-timer>1</wtr-timer>
+          <guard-timer>500</guard-timer>
+          <hold-off-time>0</hold-off-time>
+          <ports>
+            <port>
+              <port-id>port0</port-id>
+              <rpl>{{ PORT0_RPL_STATE }}</rpl>
+            </port>
+            <port>
+              <port-id>port1</port-id>
+              <rpl>{{ PORT1_RPL_STATE }}</rpl>
+            </port>
+          </ports>
+        </erp-instance>
+        {%- endif -%}
+      </erp-instances>
+    </g8032-ring>
+  </g8032-rings>
+</config>

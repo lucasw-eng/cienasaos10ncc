@@ -21,8 +21,12 @@
         </route-distinguisher>
         {%- endif %}
         <vpn-target>
-          <route-target>{{ ROUTE_TARGET }}</route-target>
-          <route-target-type>both</route-target-type>
+          <route-target>{{ IMPORT_ROUTE_TARGET }}</route-target>
+          <route-target-type>import</route-target-type>
+        </vpn-target>
+		<vpn-target>
+          <route-target>{{ EXPORT_ROUTE_TARGET }}</route-target>
+          <route-target-type>export</route-target-type>
         </vpn-target>
       </evpn-instance>
       {%- endif -%}

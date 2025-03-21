@@ -4,7 +4,7 @@
 # device and displays their capabilities.
 #
 #
-# $ ./test01 <hostname>
+# $ .aggregation_test <hostname>
 
 import sys, os, warnings, getpass, json
 warnings.simplefilter("ignore", DeprecationWarning)

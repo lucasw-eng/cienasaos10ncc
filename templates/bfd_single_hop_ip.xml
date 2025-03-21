@@ -1,0 +1,21 @@
+<config>
+  <bfd xmlns="http://ciena.com/ns/yang/ciena-bfd" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <session-config-entry>
+      <ip>
+        <single-hop>
+          {%- if OPERATION_DELETE -%}
+          <ipv4 operation="delete">
+            <interface>{{ INTERFACE }}</interface>
+          </ipv4>
+          {%- else -%}
+          <ipv4>
+            <interface>{{ INTERFACE }}</interface>
+            <profile>{{ BFD_PROFILE }}</profile>
+            <admin-down>false</admin-down>
+          </ipv4>
+          {%- endif -%}
+        </single-hop>
+      </ip>
+    </session-config-entry>
+  </bfd>
+</config>

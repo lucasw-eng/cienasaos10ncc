@@ -4,6 +4,7 @@
       <ethernet-segment>
         <name>{{ ETHERNET_SEGMENT_NAME }}</name>
         <logical-port>{{ LOGICAL_PORT }}</logical-port>
+        <evlag>true</evlag>
         <ethernet-segment-identifier>
           {%- if ES_TYPE == "MAC" -%}
           <mac-based>
@@ -18,4 +19,16 @@
       </ethernet-segment>
     </ethernet-segments>
   </evpn>
+  <interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <interface>
+      <name>{{ LOGICAL_PORT }}</name>
+      <config>
+        <name>{{ LOGICAL_PORT }}</name>
+        <agg xmlns="urn:ietf:params:xml:ns:yang:ciena-ieee-lag">
+          <agg-actor-admin-key>{{ ADMIN_KEY }}</agg-actor-admin-key>
+          <system-mac xmlns="urn:ietf:params:xml:ns:yang:ciena-ext-lag">{{ SYSTEM_MAC_ADDRESS }}</system-mac>
+        </agg>
+      </config>
+    </interface>
+  </interfaces>
 </config>

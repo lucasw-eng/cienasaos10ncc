@@ -7,6 +7,7 @@ import difflib
 import logging
 import urllib.parse as urlparse
 import xmltodict
+import json
 
 # import third party lib
 from ncclient import manager
@@ -56,10 +57,12 @@ class SAOS10NETCONFDriver():
 
 		self.templateLoader = FileSystemLoader(searchpath="../templates/")
 		self.env = Environment(loader = self.templateLoader)
+		logging.basicConfig(filename='../myapp.log', level=logging.INFO)
 
 	def open(self):
 		"""Open the connection with the device."""
 		try:
+			logger.info('Connection starting to '+self.hostname)
 			self.device = manager.connect(
 				host=self.hostname,
 				port=self.port,
@@ -73,8 +76,12 @@ class SAOS10NETCONFDriver():
 			if self.lock_on_connect:
 				self._lock()
 		except Exception as conn_err:
+			print(conn_err.args[0])
 			logger.error(conn_err.args[0])
 			print("Connection Error\n")
+			return False
+		logger.info('Connection successful to '+self.hostname)
+		return True
 
 	def close(self):
 		"""Close the connection."""
@@ -186,7 +193,6 @@ class SAOS10NETCONFDriver():
 		ettps = {}
 		rpc_reply = self.device.get(filter=("subtree",C.ETTPS_RPC_REQ_FILTER)).xml
 		# Converts string to etree
-		print(rpc_reply)
 		result_tree = ETREE.fromstring(bytes(rpc_reply, encoding='utf8'))
 		ettp_xpath = ".//interfaces:interfaces/"
 
@@ -616,6 +622,50 @@ class SAOS10NETCONFDriver():
 			}
 		return ip_interfaces
 
+	def get_evpn_instances(self) -> dict:
+		""" Returns a list of EVPN Instances from the device.
+
+		:return Will return a dictionary of all EVPN Instance details.
+		"""
+		evpn_instances = {}
+		rpc_reply = self.device.get(filter=("subtree",C.EVPN_INSTANCES_REQ_FILTER)).xml
+		#result_tree = ETREE.fromstring(bytes(rpc_reply, encoding='utf8'))
+		data_dict = xmltodict.parse(rpc_reply)
+		for key,evpn_instance in data_dict["rpc-reply"]["data"]["evpn"]["evpn-instances"].items():
+			if evpn_instance:
+				keys = list(data_dict["rpc-reply"]["data"]["evpn"]["evpn-instances"].keys())
+				evpn_instances[evpn_instance["id"]] = {}
+				evpn_instances[evpn_instance["id"]]["type"] = keys[1]
+				evpn_instances[evpn_instance["id"]]["forwarding_domain"] = evpn_instance[keys[1]]["forwarding-domain"]
+				evpn_instances[evpn_instance["id"]]["control_word"] = evpn_instance[keys[1]]["control-word"]
+				evpn_instances[evpn_instance["id"]]["l2mtu"] = evpn_instance[keys[1]]["l2mtu"]
+				evpn_instances[evpn_instance["id"]]["local_service_id"] = evpn_instance[keys[1]]["local-service-id"]
+				evpn_instances[evpn_instance["id"]]["remote_service_id"] = evpn_instance[keys[1]]["remote-service-id"]
+		return evpn_instances
+
+	def modify_interface(self, interface_name: str, description: str, mtu: str, auto_neg: str="false", port_speed: str="10G") -> bool:
+		"""
+			Modify an interface to set a description, MTU, auto_neg, and port speed.
+
+			:param interface_name: The interface to modify
+			:param description: The description for the interface
+			:param mtu: The MTU for the interface minimum 1500 maximum 9216
+			:param auto_neg: Whether or not to enable auto-negioation on the interface (needed for 1G links)
+			:param port_speed: The port speed (default 10G)
+		"""
+		interface_template = self.env.get_template("interface_modification.xml")
+		interface_rendered = interface_template.render(
+			INTERFACE_NAME=interface_name,
+			DESCRIPTION=description,
+			AUTO_NEG=auto_neg,
+			PORT_SPEED=port_speed,
+			MTU=mtu
+		)
+		rpc_reply = self.device.edit_config(target="running", config=interface_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "MODIFY INTERFACE"):
+			return False
+		return True
+
 	def create_classifier(self, name: str, tagged: bool, 
 		vlan_tags: "list of integers", vlan_ids: "list of vlan_ids (integers)", untagged_priority_bit: str) -> bool:
 		""" Create a new classifier on SAOS10.
@@ -675,7 +725,7 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def create_aggregation(self, name: str) -> bool:
+	def create_aggregation(self, name: str, description: str, mtu: str="9216") -> bool:
 		""" Create an aggregation on SAOS10
 
 		:param name: The name of the LACP aggregation to build
@@ -684,7 +734,9 @@ class SAOS10NETCONFDriver():
 		aggregation_template = self.env.get_template("aggregation_interface.xml")
 		aggregation_rendered = aggregation_template.render(
 			AGG_DELETE=False,
-			AGG_NAME=name
+			AGG_NAME=name,
+			AGG_DESCRIPTION=description,
+			MTU=mtu
 		)
 		rpc_reply = self.device.edit_config(target="running", config=aggregation_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "CREATE_AGGREGATION_INTERFACE"):
@@ -788,7 +840,7 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def create_l3_interface(self, name: str, fd_name: str, ip_address: str, prefix_length: str, vrf_name: str="default") -> bool:
+	def create_l3_interface(self, name: str, interface_type: str, fd_name: str, ip_address: str, prefix_length: str, vrf_name: str="default") -> bool:
 		""" Create an L3 data interface 
 
 		:param name: The name of the L3 interface
@@ -801,6 +853,7 @@ class SAOS10NETCONFDriver():
 		l3_interface_template = self.env.get_template("interfaces.xml")
 		l3_interface_rendered = l3_interface_template.render(
 			INTERFACE_NAME=name,
+			INTERFACE_TYPE=interface_type,
 			FD_NAME=fd_name,
 			VRF_NAME=vrf_name,
 			IP_ADDRESS=ip_address,
@@ -894,18 +947,22 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def enable_g8032(self) -> bool:
+	def enable_g8032(self, state: str="enabled") -> bool:
 		""" Enabled G8032 and configured notifications
 
+		:param state: The G8032 global state (default is "enabled")
 		:return Will return True on Success and False on Failure.
 		"""
-		g8032_conf = C.ENABLE_G8032
-		rpc_reply = self.device.edit_config(target = "running", config = g8032_conf, default_operation = "merge")
-		if not self._check_response(rpc_reply, "ENABLE_G8032"):
+		g8032_template = self.env.get_template("g8032_global_state.xml")
+		g8032_rendered = g8032_template.render(
+			STATE=state
+		)
+		rpc_reply = self.device.edit_config(target="running", config=g8032_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "SET_G8032_GLOBAL_STATE"):
 			return False
 		return True
 
-	def create_g8032_logicalRing(self, name: str, ring_id: int, port0: int, port1: int) -> bool:
+	def create_g8032_logicalRing(self, name: str, ring_id: int, port0: str, port1: str) -> bool:
 		""" Creates a G8032 Logical Ring
 
 		:param name: The name of the Logical Ring
@@ -913,28 +970,45 @@ class SAOS10NETCONFDriver():
 		:param port1: The east port of the Logical Ring
 		:return Will return True on Success and False on Failure
 		"""
-		g8032_conf = C.CREATE_G8032_LOGICAL_RING % (name, ring_id, port0, port1)
-		rpc_reply = self.device.edit_config(target="running", config=g8032_conf, default_operation = "merge")
+		g8032_template = self.env.get_template("g8032_logical_ring.xml")
+		g8032_rendered = g8032_template.render(
+			OPERATION_DELETE=False,
+			RING_NAME=name,
+			RING_ID=ring_id,
+			PORT0_INTERFACE=port0,
+			PORT1_INTERFACE=port1
+		)
+		rpc_reply = self.device.edit_config(target="running", config=g8032_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "CREATE_G8032_LOGICAL_RING"):
 			return False
 		return True
 
-	def create_g8032_virtualRing(self, lr_name: "Logical Ring Name", vr_name: "Virtual Ring Name", raps_vid: int, 
-		raps_lvl: int, data_members: "comma separated string of virtual switch names", rpl_port0: str, rpl_port1: str) -> bool:
+	def create_g8032_virtualRing(self, lr_name: str, vr_name: str, raps_vid: int, data_members: str="", 
+		raps_lvl: int=2, rpl_port0: str="none", rpl_port1: str="none") -> bool:
 		""" Creates a G8032 Logical Ring
 
 		:param lr_name: The name of the Logical Ring
 		:param vr_name: The name of the Virtual Ring 
 		:param raps_vid: The vlan id for RAPS communication
 		:param raps_lvl: The RAPS level settings (default '2')
-		:param data_members: A comma separated string of virtual switch names that will be protected by the ring
-		:param rpl_port0: Either none,rpl_owner, or
-		:param rpl_port1: Either none,rpl_owner, or
+		:param data_members: A comma separated string of virtual switch names that will be protected by the ring (default "")
+		:param rpl_port0: Either none,rpl_owner (default "none")
+		:param rpl_port1: Either none,rpl_owner (default "none")
 		:return Will return True on Success and False on Failure
 		"""
-		g8032_conf = C.CREATE_G8032_VIRTUAL_RING % (lr_name, vr_name, raps_vid, raps_lvl, data_members, rpl_port0, rpl_port1)
-		rpc_reply = self.device.edit_config(target="running", config=g8032_conf, default_operation = "merge")
-		if not self._check_response(rpc_reply, "CREATE_G8032_LOGICAL_RING"):
+		g8032_template = self.env.get_template("g8032_virtual_ring.xml")
+		g8032_rendered = g8032_template.render(
+			OPERATION_DELETE=False,
+			LOGICAL_RING_NAME=lr_name,
+			VIRTUAL_RING_NAME=vr_name,
+			RAPS_VLAN_ID=raps_vid,
+			RAPS_LEVEL=raps_lvl,
+			DATA_MEMBERS=data_members,
+			PORT0_RPL_STATE=rpl_port0,
+			PORT1_RPL_STATE=rpl_port1
+		)
+		rpc_reply = self.device.edit_config(target="running", config=g8032_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "CREATE_G8032_VIRTUAL_RING"):
 			return False
 		return True
 
@@ -992,7 +1066,97 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def create_bgp_instance(self, asn: str, router_id: str) -> bool:
+	def create_sr_connected_prefix_sid(self, prefix: str, interface: str, sid_index: int, sid_type: str="index") -> bool:
+		"""
+		   Create a connected_prefix_sid_mapping. The default type is an index SID.
+
+		   :param prefix
+		   :param interface
+		   :param sid_index
+		   :param sid_type
+
+		   :return Will return True on success and false on failure.
+		"""
+		sr_connected_prefix_sid_template = self.env.get_template("sr_connected_prefix_map.xml")
+		sr_connected_prefix_sid_rendered = sr_connected_prefix_sid_template.render(
+			PREFIX=prefix,
+			INTERFACE=interface,
+			SID_TYPE=sid_type,
+			SID_INDEX=sid_index
+		)
+		rpc_reply = self.device.edit_config(target="running", config=sr_connected_prefix_sid_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "ADD SR CONNECTED PREFIX SID MAPPING"):
+			return False
+		return True
+
+	def create_bfd_profile(self, profile_name: str, multiplier: int=3, min_tx_int: int=300, rqr_min_rx_int: int=300, 
+		accelerate: bool=True, operation: bool=False) -> bool:
+		"""
+		   Create a BFD profile.
+
+		   :param profile_name: The name of the BFD profile (max-length 64 characters)
+		   :param multipler: The BFD multipler to use (range: 3-50)
+		   :param min_tx_int: The minimum Tx interval in microseconds to use for BFD packets.
+		   :param rqr_min_rx_int: The required minimum Rx intervalin microseconds for BFD packets.
+		   :param accelerate: Enabled additional hardware based offloading for BFD packets.
+		   :param operation: True if you want to delete this profile, otherwise False.
+
+		   :return Will return True on success and false on failure.
+		"""
+		bfd_instance_template = self.env.get_template("bfd_profile.xml")
+		bfd_instance_rendered = bfd_instance_template.render(
+			OPERATION_DELETE=operation,
+			PROFILE_NAME=profile_name,
+			MULTIPLIER=multiplier,
+			DESIRED_MIN_TX_INTERVAL=min_tx_int,
+			REQUIRED_MIN_RX_INTERVAL=rqr_min_rx_int
+			#ACCELERATE=accelerate
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bfd_instance_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "ADD BFD PROFILE"):
+			return False
+		return True
+
+	def attach_bfd_profile_to_interface(self, profile_name: str, interface_name: str) -> bool:
+		"""
+			Attach an existing BFD Profile to a specific interface applying timer policies.
+
+			:param profile_name: The BFD profile name
+			:param interface_name: The interface to apply the specified BFD profile to
+
+			:return Will return True on success and False on failure.
+		"""
+		bfd_attach_template = self.env.get_template("bfd_single_hop_ip.xml")
+		bfd_attach_rendered = bfd_attach_template.render(
+			OPERATION_DELETE=False,
+			INTERFACE=interface_name,
+			BFD_PROFILE=profile_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bfd_attach_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "ATTACH BFD POLICY"):
+			return False
+		return True
+
+	def enable_bfd_isis(self, isis_tag: str, interface_name: str) -> bool:
+		"""
+			Enable BFD on an interface for the ISIS routing process.
+
+			:param isis_tag: The isis routing instance
+			:param interface_name: The interface name within ISIS to enable BFD on
+
+			:return Will return True on success and False on failure.
+		"""
+		bfd_isis_template = self.env.get_template("isis_bfd_enable_interface.xml")
+		bfd_isis_rendered = bfd_isis_template.render(
+			ISIS_TAG=isis_tag,
+			INTERFACE_NAME=interface_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bfd_isis_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "ISIS ENABLE BFD"):
+			return False
+		return True
+
+	def create_bgp_instance(self, asn: str, router_id: str, cluster: bool=False, cluster_id: str="64557") -> bool:
 		""" Create a BGP Instance
 
 		:param asn: The autonomous system number for the BGP instance
@@ -1003,14 +1167,64 @@ class SAOS10NETCONFDriver():
 		bgp_instance_rendered = bgp_instance_template.render(
 			OPERATION_DELETE=False,
 			ASN=asn,
-			ROUTER_ID=router_id
+			ROUTER_ID=router_id,
+			CLUSTER=False,
+			CLUSTER_ID=cluster_id
 		)
 		rpc_reply = self.device.edit_config(target="running", config=bgp_instance_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "CREATE BGP INSTANCE"):
 			return False
 		return True
 
-	def add_bgp_peer(self, asn: str, router_id: str, peer_address: str, remote_as: str, rr_client: bool=True, update_source_interface: str="loopback1") -> bool:
+	def create_bgp_peer_group(self, asn: str, peer_group_name: str, remote_as: str, update_source_interface: str="loopback1", 
+		bfd_enabled: bool=True, rr_client: bool=False, operation: bool=False) -> bool:
+		"""
+			Create a BGP PEER Template
+
+			:param operation: If true will perform a delete on the peer group
+			:param asn: The autonmous system number for the BGP Peer group instance
+			:param peer_group_name: The peer group name for the BGP Peer group
+			:param remote_as: The peer's remote autonmous system number
+			:param rr_client: If true will set the route-reflector true flag
+			:return Will return True on success and False on failure.
+		"""
+		bgp_peer_group_template = self.env.get_template("bgp_peer_group.xml")
+		bgp_peer_group_rendered = bgp_peer_group_template.render(
+			OPERATION_DELETE=operation,
+			ASN=asn,
+			PEER_GROUP_NAME=peer_group_name,
+			REMOTE_AS=remote_as,
+			UPDATE_SOURCE_INTERFACE=update_source_interface,
+			BFD=bfd_enabled,
+			RR_CLIENT=rr_client
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bgp_peer_group_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "CREATE BGP PEER GROUP"):
+			return False
+		return True
+
+	def add_bgp_peer_to_bgp_peer_group(self, asn: str, peer_address: str, peer_group_name: str, operation: bool=False) -> bool:
+		""" Add a BGP Peer to an existing BGP Peer Grouo 
+
+		:param asn: The autonomous system number for the BGP instance
+		:param peer_address: The IP address of the BGP peer
+		:param peer_group: The peer_group to assign the peer to
+		:return Will return True on success and False on failure.
+		"""
+		bgp_peer_add_template = self.env.get_template("bgp_peer_add_to_peer_group.xml")
+		bgp_peer_group_add_rendered = bgp_peer_add_template.render(
+			OPERATION_DELETE=operation,
+			ASN=asn,
+			PEER_ADDRESS=peer_address,
+			PEER_GROUP_NAME=peer_group_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bgp_peer_group_add_rendered, default_operation = "merge")
+		if not self._check_response(rpc_reply, "ADD TO BGP PEER GROUP"):
+			return False
+		return True
+
+	def add_bgp_peer(self, asn: str, router_id: str, peer_address: str, remote_as: str, rr_client: bool=True, 
+		update_source_interface: str="loopback1") -> bool:
 		""" Add a BGP Peer to an existing BGP Process
 
 		:param asn: The autonomous system number for the BGP instance
@@ -1024,7 +1238,7 @@ class SAOS10NETCONFDriver():
 		bgp_peer_template = self.env.get_template("bgp_peer_evpn.xml")
 		bgp_peer_rendered = bgp_peer_template.render(
 			OPERATION_DELETE=False,
-			RR_client=rr_client,
+			RR_CLIENT=rr_client,
 			ASN=asn,
 			ROUTER_ID=router_id,
 			PEER_ADDRESS=peer_address,
@@ -1036,15 +1250,36 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
+	def set_bgp_route_reflector_client(self, asn: str, peer_address: str) -> bool:
+		"""
+        Set route reflector client status to an existing BGP peer.
+
+        :param asn: The autonomous system number for the BGP instance
+        :param peer_address: The IP address of the BGP peer
+        
+        :return Will return True on success and False on failure.
+        """
+		bgp_rr_template = self.env.get_template("bgp_set_rr_evpn.xml")
+		bgp_rr_rendered = bgp_rr_template.render(
+			ASN=asn,
+			PEER_ADDRESS=peer_address
+		)
+		rpc_reply = self.device.edit_config(target="running", config=bgp_rr_rendered, default_operation = "merge", test_option = "test-then-set")
+		if not self._check_response(rpc_reply, "ADD BGP RR CLIENT"):
+			return False
+		return True
+
 	def create_evpn_instance(self, evpn_instance_id: int, forwarding_domain: str, local_service_id: int, 
-		remote_service_id: int, route_target: str, custom_rd: bool=False, rd_value: str="") -> bool:
+		remote_service_id: int, import_route_target: str, export_route_target: str, custom_rd: bool=False, 
+		rd_value: str="") -> bool:
 		""" Creates an EVPN Instance
 
 		:param evpn_instance_id: The EVPN instance identifier
 		:param forwarding_domain: The forwarding domain the EVPN instance will attach to
 		:param local_service_id: The local service identifier to use for this instance
 		:param remote_service_id: The remote service identier for this instance
-		:param route_target: The route target to use for this service
+		:param import_route_target: The import route target to use for this service
+		:param export_route_target: The export route target to use for this service
 		:param custom_rd: Specifies whether a custom RD will be defined or not (default: False)
 		:param rd_value: If custom_rd is set then the evpn instance will use this value for the RD
 		:return Will return True on success and False on failure.
@@ -1056,7 +1291,8 @@ class SAOS10NETCONFDriver():
 			EVPN_FORWARDING_DOMAIN=forwarding_domain,
 			LOCAL_SERVICE_ID=local_service_id,
 			REMOTE_SERVICE_ID=remote_service_id,
-			ROUTE_TARGET=route_target,
+			IMPORT_ROUTE_TARGET=import_route_target,
+			EXPORT_ROUTE_TARGET=export_route_target,
 			RD=custom_rd,
 			ROUTE_DISTINGUISHER=rd_value
 		)
@@ -1065,8 +1301,8 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def set_ethernet_segment(self, name: str, logical_port: str, es_type: str="MAC", mac_address: str="00:00:00:00:00:00", 
-		es_id: str="bb:22:33:44:55:66:77:88:99") -> bool:
+	def set_ethernet_segment(self, name: str, logical_port: str, admin_key: int, system_mac: str, es_type: str="MAC", 
+		mac_address: str="00:00:00:00:00:00", es_id: str="bb:22:33:44:55:66:77:88:99") -> bool:
 		""" Manually specifies the ES ID (not required on single-homed services)
 
 		:param name The name of the ethernet segment
@@ -1082,6 +1318,8 @@ class SAOS10NETCONFDriver():
 			LOGICAL_PORT=logical_port,
 			ES_TYPE=es_type,
 			MAC_ADDRESS=mac_address,
+			ADMIN_KEY=admin_key,
+			SYSTEM_MAC_ADDRESS=system_mac,
 			ES_ID=es_id
 		)
 		rpc_reply = self.device.edit_config(target="running", config=ethernet_segment_rendered, default_operation = "merge")
@@ -1177,21 +1415,30 @@ class SAOS10NETCONFDriver():
 		:param name: The name of the Logical Ring
 		:return Will return True on Success and False on Failure
 		"""
-		g8032_conf = C.DELETE_G8032_LOGICAL_RING % (name)
-		rpc_reply = self.device.edit_config(target="running", config=g8032_conf, default_operation = "merge")
+		g8032_template = self.env.get_template("g8032_logical_ring.xml")
+		g8032_rendered = g8032_template.render(
+			OPERATION_DELETE=True,
+			RING_NAME=name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=g8032_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "DELETE_G8032_LOGICAL_RING"):
 			return False
 		return True
 
-	def delete_g8032_virtualRing(self, lr_name: "Logical Ring name", vr_name: "Virtual Ring Name") -> bool:
+	def delete_g8032_virtualRing(self, lr_name: str, vr_name: str) -> bool:
 		""" Deletes a G8032 ERP Construct (Virtual Ring)
 
 		:param lr_name: The Logical Ring name the ERP construct is attached to
 		:param vr_name: The Virtual Ring name 
 		:return Will return True on success and False on failure.
 		"""
-		g8032_conf = C.DELETE_G8032_VIRTUAL_RING % (lr_name, vr_name)
-		rpc_reply = self.device.edit_config(target="running", config=g8032_conf, default_operation = "merge")
+		g8032_template = self.env.get_template("g8032_virtual_ring.xml")
+		g8032_rendered = g8032_template.render(
+			OPERATION_DELETE=True,
+			LOGICAL_RING_NAME=lr_name,
+			VIRTUAL_RING_NAME=vr_name
+		)
+		rpc_reply = self.device.edit_config(target="running", config=g8032_rendered, default_operation = "merge")
 		if not self._check_response(rpc_reply, "DELETE_G8032_VIRTUAL_RING"):
 			return False
 		return True

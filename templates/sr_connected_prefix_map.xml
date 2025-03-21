@@ -1,0 +1,10 @@
+<config>
+	<segment-routing xmlns="http://ciena.com/ns/yang/ciena-sr">
+		<connected-prefix-sid-map>
+			<prefix>{{ PREFIX }}</prefix>
+			<interface>{{ INTERFACE }}</interface>
+			<value-type>{{ SID_TYPE }}</value-type>
+			<start-sid>{{ SID_INDEX }}</start-sid>
+		</connected-prefix-sid-map>
+	</segment-routing>
+</config>

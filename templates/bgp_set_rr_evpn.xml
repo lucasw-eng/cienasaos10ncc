@@ -1,0 +1,15 @@
+<config>
+  <bgp xmlns="http://ciena.com/ns/yang/ciena-bgp">
+    <instance>
+      <as>{{ ASN }}</as>
+      <peer>
+        <address>{{ PEER_ADDRESS }}</address>
+        <address-family>
+          <afi>l2vpn</afi>
+          <safi>evpn</safi>
+          <route-reflector-client>true</route-reflector-client>
+        </address-family>
+      </peer>
+    </instance>
+  </bgp>
+</config>

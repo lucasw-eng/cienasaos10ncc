@@ -14,7 +14,7 @@
           <level-type>{{ LEVEL_TYPE }}</level-type> 
           {%- if AUTHENTICATION %}
           <{{ LEVEL_TYPE }}>
-            <password>{{ PASSWORD }}
+            <password>{{ PASSWORD }}</password>
           </{{ LEVEL_TYPE }}>
           {%- endif %}
           <lsp-interval>34</lsp-interval> 

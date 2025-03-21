@@ -9,7 +9,7 @@
           <cos-to-frame-map xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">default-c2f</cos-to-frame-map>
           <frame-to-cos-map xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">default-f2c</frame-to-cos-map>
           <role xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces" xmlns:cn-if="http://ciena.com/ns/yang/ciena-openconfig-interfaces">data</role>
-          <type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">ip</type>
+          <type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">{{ INTERFACE_TYPE }}</type>
           <underlay-binding xmlns="http://ciena.com/ns/yang/ciena-underlay-binding">
             <config>
               <fd>{{ FD_NAME }}</fd>

@@ -1,0 +1,17 @@
+<config>
+  <bgp xmlns="http://ciena.com/ns/yang/ciena-bgp" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <instance>
+      <as>{{ ASN }}</as>
+      {% if OPERATION_DELETE -%}
+      <peer operation="delete">
+        <address>{{ PEER_ADDRESS }}</address>
+      </peer>
+      {% else -%}
+      <peer>
+        <address>{{ PEER_ADDRESS }}</address>
+        <peer-group>{{ PEER_GROUP_NAME }}</peer-group>
+      </peer>
+      {% endif -%}
+    </instance>
+  </bgp>
+</config>

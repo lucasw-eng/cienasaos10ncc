@@ -117,110 +117,115 @@ IP_INTERFACES_REQ_FILTER = """
 <oc-if:interfaces xmlns:oc-if="http://openconfig.net/yang/interfaces"/>
 """
 
-# Enabled G8032 globally and enabled notifications globally for the protocol
-ENABLE_G8032 = """
-<config>
-	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
-		<ring-system-control>enabled</ring-system-control> 
-		<notification-enabled>true</notification-enabled>
-		<raps-version xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">g8032-version1</raps-version> 
-	</g8032-rings>
-</config>
+# subtree filter to get ip interfaces using GET CONFIG RPC
+EVPN_INSTANCES_REQ_FILTER = """
+<evpn xmlns="http://ciena.com/ns/yang/ciena-evpn" />
 """
+
+# Enabled G8032 globally and enabled notifications globally for the protocol
+#ENABLE_G8032 = """
+#<config>
+#	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+#		<ring-system-control>enabled</ring-system-control> 
+#		<notification-enabled>true</notification-enabled>
+#		<raps-version xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">g8032-version1</raps-version> 
+#	</g8032-rings>
+#</config>
+#"""
 
 # EDIT-CONFIG RPC for creating a G.8032 Logical Ring
-CREATE_G8032_LOGICAL_RING = """
-<config>
-	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
-		<g8032-ring>
-      <ring-name>%s</ring-name>
-      <ring-id>%d</ring-id>
-      <ring-ports>
-				<ring-port>
-					<port-id>port0</port-id>
-          <interface>%s</interface>
-        </ring-port>
-        <ring-port>
-          <port-id>port1</port-id>
-          <interface>%s</interface>
-        </ring-port>
-      </ring-ports>
-    </g8032-ring>
-  </g8032-rings>
-</config>
-"""
+#CREATE_G8032_LOGICAL_RING = """
+#<config>
+#	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+#		<g8032-ring>
+#      <ring-name>%s</ring-name>
+#      <ring-id>%d</ring-id>
+#      <ring-ports>
+#				<ring-port>
+#					<port-id>port0</port-id>
+#          <interface>%s</interface>
+#        </ring-port>
+#        <ring-port>
+#          <port-id>port1</port-id>
+#          <interface>%s</interface>
+#        </ring-port>
+#      </ring-ports>
+#    </g8032-ring>
+#  </g8032-rings>
+#</config>
+#"""
 
 # EDIT-CONFIG RPC for creating a G.8032 Virtual Ring Instance
-CREATE_G8032_VIRTUAL_RING = """
-<config>
-	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
-		<g8032-ring>
-      <ring-name>%s</ring-name>
-      <erp-instances>
-				<erp-instance>
-					<instance-name>%s</instance-name> 
-					<raps-vid>%d</raps-vid>
-					<raps-level>%d</raps-level> 
-					<data-members>%s</data-members>
-					<erp-instance-construct xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">major-ring</erp-instance-construct> 
-					<reversion>revertive</reversion>
-          <wtr-timer>1</wtr-timer>
-          <guard-timer>500</guard-timer>
-          <hold-off-time>0</hold-off-time>
-          <ports>
-            <port>
-              <port-id>port0</port-id>
-              <rpl>%s</rpl>
-            </port>
-            <port>
-              <port-id>port1</port-id>
-              <rpl>%s</rpl>
-            </port>
-          </ports>
-        </erp-instance>
-      </erp-instances>
-    </g8032-ring>
-  </g8032-rings>
-</config>
-"""
+#CREATE_G8032_VIRTUAL_RING = """
+#<config>
+#	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+#		<g8032-ring>
+#      <ring-name>%s</ring-name>
+#      <erp-instances>
+#				<erp-instance>
+#					<instance-name>%s</instance-name> 
+#					<raps-vid>%d</raps-vid>
+#					<raps-level>%d</raps-level> 
+#					<data-members>%s</data-members>
+#					<erp-instance-construct xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">major-ring</erp-instance-construct> 
+#					<reversion>revertive</reversion>
+#          <wtr-timer>1</wtr-timer>
+#          <guard-timer>500</guard-timer>
+#          <hold-off-time>0</hold-off-time>
+#          <ports>
+#            <port>
+#              <port-id>port0</port-id>
+#              <rpl>%s</rpl>
+#            </port>
+#            <port>
+#              <port-id>port1</port-id>
+#              <rpl>%s</rpl>
+#            </port>
+#          </ports>
+#        </erp-instance>
+#      </erp-instances>
+#    </g8032-ring>
+#  </g8032-rings>
+#</config>
+#"""
 
 # Enabled G8032 globally and enabled notifications globally for the protocol
-DISABLE_G8032 = """
-<config>
-	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
-		<ring-system-control>disabled</ring-system-control> 
-		<notification-enabled>false</notification-enabled>
-		<raps-version xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">g8032:g8032-version1</raps-version> 
-	</g8032-rings>
- </config>
-"""
+#DISABLE_G8032 = """
+#<config>
+#	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+#		<ring-system-control>disabled</ring-system-control> 
+#		<notification-enabled>false</notification-enabled>
+#		<raps-version xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">g8032:g8032-version1</raps-version> 
+#	</g8032-rings>
+# </config>
+#"""
 
 # EDIT-CONFIG RPC for deleting a G.8032 Logical Ring
-DELETE_G8032_LOGICAL_RING = """
-<config>
-	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
-		<g8032-ring operation="delete">
-      <ring-name>%s</ring-name>
-    </g8032-ring>
-  </g8032-rings>
-</config>
-"""
+#DELETE_G8032_LOGICAL_RING = """
+#<config>
+#	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+#		<g8032-ring operation="delete">
+#      <ring-name>%s</ring-name>
+#    </g8032-ring>
+#  </g8032-rings>
+#</config>
+#"""
 
 # EDIT-CONFIG RPC for deleting a G.8032 Virtual Ring Instance
-DELETE_G8032_VIRTUAL_RING = """
-<config>
-	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
-		<g8032-ring>
-      <ring-name>%s</ring-name>
-      <erp-instances>
-				<erp-instance operation="delete">
-					<instance-name>%s</instance-name> 
-        </erp-instance>
-      </erp-instances>
-    </g8032-ring>
-  </g8032-rings>
-</config>
-"""
+#DELETE_G8032_VIRTUAL_RING = """
+#<config>
+#	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+#		<g8032-ring>
+#      <ring-name>%s</ring-name>
+#      <erp-instances>
+#				<erp-instance operation="delete">
+#					<instance-name>%s</instance-name> 
+#        </erp-instance>
+#      </erp-instances>
+#    </g8032-ring>
+#  </g8032-rings>
+#</config>
+#"""
 
 # possible encoding values for optional argument "config_encoding"
 CONFIG_ENCODINGS = ["cli", "xml"]

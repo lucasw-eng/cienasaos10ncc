@@ -1,0 +1,7 @@
+<config>
+  <g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+    <ring-system-control>{{ STATE }}</ring-system-control> 
+    <notification-enabled>true</notification-enabled>
+    <raps-version xmlns:g8032="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft">g8032-version1</raps-version> 
+  </g8032-rings>
+</config>

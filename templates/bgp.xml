@@ -8,6 +8,9 @@
     <instance>
       <as>{{ ASN }}</as>
       <router-id>{{ ROUTER_ID }}</router-id>
+      {%- if CLUSTER -%}
+      <cluster-id>{{ CLUSTER_ID }}</cluster-id>
+      {%- endif -%}
       <address-family>
         <afi>l2vpn</afi>
         <safi>evpn</safi>

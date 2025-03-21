@@ -1,0 +1,24 @@
+<config>
+	<g8032-rings xmlns="http://www.ciena.com/ns/yang/ciena-itut-g8032-draft" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"> 
+    {%- if OPERATION_DELETE -%}
+    <g8032-ring operation="delete">
+      <ring-name>{{ RING_NAME }}</ring-name>
+    </g8032-ring>
+    {%- else -%}
+    <g8032-ring>
+      <ring-name>{{ RING_NAME }}</ring-name>
+      <ring-id>{{ RING_ID }}</ring-id>
+      <ring-ports>
+				<ring-port>
+					<port-id>port0</port-id>
+          <interface>{{ PORT0_INTERFACE }}</interface>
+        </ring-port>
+        <ring-port>
+          <port-id>port1</port-id>
+          <interface>{{ PORT1_INTERFACE }}</interface>
+        </ring-port>
+      </ring-ports>
+    </g8032-ring>
+    {%- endif -%}
+  </g8032-rings>
+</config>

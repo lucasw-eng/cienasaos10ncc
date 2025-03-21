@@ -1,0 +1,15 @@
+<config>
+  <isis xmlns="http://ciena.com/ns/yang/ciena-isis" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <instance>
+        <tag>{{ ISIS_TAG }}</tag>
+        <interfaces>
+          <interface>
+            <name>{{ INTERFACE_NAME }}</name>
+            <bfd>
+              <enable>true</enable>
+            </bfd>
+          </interface>
+        </interfaces>
+    </instance>
+  </isis>
+</config>

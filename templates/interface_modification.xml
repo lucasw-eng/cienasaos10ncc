@@ -1,0 +1,19 @@
+<config>
+	<interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+		<interface>
+			<name>{{ INTERFACE_NAME }}</name>
+			<config>
+				<description>{{ DESCRIPTION }}</description>
+				<auto-negotiation xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">{{ AUTO_NEG }}</auto-negotiation>
+				<port-speed xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">{{ PORT_SPEED }}</port-speed>
+			</config>
+		</interface>
+	</interfaces>
+	<logical-ports xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-mef-logical-port" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+		<logical-port>
+			<name>{{ INTERFACE_NAME }}</name>
+			<mtu>{{ MTU }}</mtu>
+			<description>{{ DESCRIPTION }}</description>
+		</logical-port>
+	</logical-ports>
+</config>
