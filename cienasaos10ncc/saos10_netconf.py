@@ -1012,7 +1012,7 @@ class SAOS10NETCONFDriver():
 			return False
 		return True
 
-	def create_isis_instance(self, tag: str, net_id: str, passive_interface: str, level_type: str="level-1", 
+	def create_isis_instance(self, tag: str, net_id: str, passive_interface: str, mpls_te_router_id: str, level_type: str="level-1", 
 		segment_routing: bool=True) -> bool:
 		""" Create an ISIS Instance 
 
@@ -1032,6 +1032,7 @@ class SAOS10NETCONFDriver():
 			INSTANCE_TAG=tag,
 			NET_ID=net_id,
 			LEVEL_TYPE=level_type,
+			IP_ADDRESS=mpls_te_router_id,
 			PASSIVE_INTERFACE=passive_interface,
 			SR=segment_routing
 		)

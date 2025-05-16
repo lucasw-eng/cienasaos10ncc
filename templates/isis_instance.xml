@@ -2,13 +2,32 @@
   <isis xmlns="http://ciena.com/ns/yang/ciena-isis"> 
     {%- if OPERATION_DELETE -%}
     <instance operation="delete">
-      <tag> {{ INSTANCE_TAG }}</tag>
+      <tag>{{ INSTANCE_TAG }}</tag>
     </instance>
     {%- else -%}
     <instance>
       <tag>{{ INSTANCE_TAG }}</tag>
       <net>{{ NET_ID }}</net> 
       <level-type>{{ LEVEL_TYPE }}</level-type> 
+      <microloop-avoidance>
+        <enable>true</enable>
+      </microloop-avoidance>
+      <fast-reroute>
+        <level>
+          <level-type>{{ LEVEL_TYPE }}</level-type>
+          <lfa>
+            <per-prefix-enable>true</per-prefix-enable>
+            <ti-lfa>
+              <per-prefix-enable>true</per-prefix-enable>
+            </ti-lfa>
+          </lfa>
+        </level>
+      </fast-reroute>
+      <mpls-te>
+        <router-id>{{ IP_ADDRESS }}</router-id>
+        <level-type>{{ LEVEL_TYPE }}</level-type>
+      </mpls-te>
+      <cspf-flag>true</cspf-flag>
       <metric-style>wide</metric-style>
       <passive>
         <passive-if-name>{{ PASSIVE_INTERFACE }}</passive-if-name> 
@@ -16,6 +35,13 @@
       {%- if SR -%}
       <segment-routing>
         <enabled>true</enabled>
+        <srgb>
+          <lower-bound>16000</lower-bound>
+          <upper-bound>23000</upper-bound>
+        </srgb>
+        <bindings>
+          <advertise>true</advertise>
+        </bindings>
       </segment-routing>
       {%- endif -%}
     </instance>

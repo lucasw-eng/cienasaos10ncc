@@ -17,8 +17,8 @@
             <password>{{ PASSWORD }}</password>
           </{{ LEVEL_TYPE }}>
           {%- endif %}
-          <lsp-interval>34</lsp-interval> 
-          <lsp-retransmit-interval>6</lsp-retransmit-interval> 
+          <lsp-interval>33</lsp-interval> 
+          <lsp-retransmit-interval>65535</lsp-retransmit-interval> 
           <hello-padding>false</hello-padding>
           <ldp-igp-sync>
             <level-type>{{ LEVEL_TYPE }}</level-type>
